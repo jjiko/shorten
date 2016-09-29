@@ -1,0 +1,19 @@
+{
+  "name": "jjiko/shorten",
+  "description": "shorten and track urls.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Joe Jiko",
+      "email": "me@joejiko.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "Jiko\\Shorten\\": "src/"
+    }
+  }
+}
