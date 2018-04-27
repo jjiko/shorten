@@ -2,35 +2,45 @@
 
 class Bitly
 {
-  public static function shorten($url, $endpoint='https://api-ssl.bitly.com/v3/shorten')
+
+  public function __construct(BitlyLink $link)
   {
-    $link = BitlyLink::firstOrCreate(['long_url' => $url]);
-    if(empty($link->url)) {
+    $this->links = $link->all();
+  }
 
-      // @todo move config to package. ex. bitly::token
-      $query_string = http_build_query([
-        'access_token' => getenv('BITLY_TOKEN'),
-        'longUrl' => $url
-      ]);
-
-      $short_link = getJson("{$endpoint}?{$query_string}");
-      if(property_exists($short_link, "error")) {
-        return "";
-      }
-
-      $link->update([
-        'url' => $short_link->data->url,
-        'hash' => $short_link->data->hash,
-        'global_hash' => $short_link->data->global_hash
-      ]);
+  public function shorten($url, $endpoint = 'https://api-ssl.bitly.com/v3/shorten')
+  {
+    if ($link = $this->links->filter(function ($value, $key) use ($url) {
+      return $value->long_url == $url;
+    })->first()
+    ) {
+      return $link;
     }
+
+    $link = new BitlyLink(['long_url' => $url]);
+
+    // @todo move config to package. ex. bitly::token
+    $query_string = http_build_query([
+      'access_token' => getenv('BITLY_TOKEN'),
+      'longUrl' => $url
+    ]);
+
+    $short_link = getJson("{$endpoint}?{$query_string}");
+    if (property_exists($short_link, "error")) {
+      return "";
+    }
+
+    $link->url = $short_link->data->url;
+    $link->hash = $short_link->data->hash;
+    $link->global_hash = $short_link->data->global_hash;
+    $link->save();
 
     return $link;
   }
 
-  public static function url($url)
+  public function url($url)
   {
-    $link = static::shorten($url);
+    $link = $this->shorten($url);
 
     return $link->url;
   }
