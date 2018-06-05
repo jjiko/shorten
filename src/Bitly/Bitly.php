@@ -3,9 +3,11 @@
 class Bitly
 {
 
-  public function __construct(BitlyLink $link)
+  public function __construct()
   {
-    $this->links = $link->all();
+    $this->links = cache()->rememberForever('bitly.links', function () {
+      return BitlyLink::all();
+    });
   }
 
   public function shorten($url, $endpoint = 'https://api-ssl.bitly.com/v3/shorten')
@@ -29,6 +31,7 @@ class Bitly
     if (property_exists($short_link, "error")) {
       return "";
     }
+
 
     $link->url = $short_link->data->url;
     $link->hash = $short_link->data->hash;
